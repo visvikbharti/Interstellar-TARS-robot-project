@@ -1,31 +1,38 @@
-# TARS gait simulation (MuJoCo)
+# TARS simulations (MuJoCo)
 
-Physics simulation of the walking gait, so we prove designs walk **before**
-printing. Result so far: the robot walks **51cm in 10s (5.1 cm/s)** using an
-IMU balance loop + "lean and catch" kick gait.
+Three models, all sharing dimensions with `hardware/cad/tars.scad`:
+
+| Files | What it proves | Result |
+|---|---|---|
+| `gen_model.py` + `gait_sim.py` | v1 custom idea: 2 servo pairs + MPU6050 IMU balance ("lean and catch") | walks **5.1 cm/s**, survives 4N shoves; needs closed-loop balance |
+| `v3_model.py` + `v3_sim.py` | **The build architecture** (TARS-AI V3): central body touches ground, legs lift+swing. No balancing, no IMU | walks **2.3 cm/s** quasi-static, zero falls in final sweep |
+| `pinwheel_model.py` + `roll_sim.py` | **Miller's planet WHEEL MODE**: 4 slabs splayed into a rimless wheel | kickstarted at 1.8 m/s it cartwheels **1.4–1.6m**; powered sustained rolling needs telescoping spokes (TARS3D trick) -> v2 hardware |
 
 ```sh
-source software/.venv/bin/activate   # from the project root
+source software/.venv/bin/activate    # from the project root
 cd simulation
-python gen_model.py            # regenerate tars.xml after changing dimensions
-python gait_sim.py             # headless run of the best gait (walks ~51cm/10s)
-mjpython gait_sim.py --gui     # WATCH IT WALK (macOS needs mjpython, included in venv)
-python gait_sim.py --sweep     # grid-search gait parameters
+python v3_model.py && python v3_sim.py          # the build gait (headless)
+mjpython v3_sim.py --gui                        # watch the V3 walk
+python pinwheel_model.py && mjpython roll_sim.py --gui   # WATCH IT CARTWHEEL
+mjpython gait_sim.py --gui                      # the IMU-balance walker
 ```
 
-## What the sim taught us (chronological)
+Every sim has `--sweep` for parameter search and runs until you close the
+window in `--gui` mode (auto-reset on falls, camera tracks the robot).
+`/Applications/MuJoCo.app` opens any of the `tars*.xml` files interactively.
 
-1. Sharp-edged feet + open-loop wiggling = falls, always (300+ configs).
-2. Rounded bottom edges let the robot roll over the stance foot; a flat middle
-   section keeps standing statically stable.
-3. Mass placement is everything: battery cells low in the outer slabs + Pi on
-   a front chest plate → COM at 11cm, centered (was 16cm, rear-biased).
-4. **Closed-loop balance (MPU6050) is the enabler**: stance legs correct torso
-   pitch (kp=2.0, kd=0.3 on pitch/pitch-rate), a 0.04 rad forward lean makes it
-   perpetually fall forward, and a 25°/1.2Hz asymmetric kick gait catches it.
-5. This mirrors reality: the proven TARS-AI V3 design avoids balancing entirely
-   with 2 extra lift servos + resting the torso on the ground between steps.
+## Findings log
 
-The balance gains and gait constants port directly to the Pi servo code later.
-
-Dimensions live in `gen_model.py` and must match `hardware/cad/tars.scad`.
+1. Open-loop wiggling on sharp-edged feet falls, always (300+ configs).
+2. Rounded bottom edges (flat middle + 6mm round-over) let the robot roll
+   over the stance foot; mass must sit LOW and CENTERED.
+3. Two ways to walk: IMU balance loop (fewer servos, dynamic) or the V3
+   lift+swing with ground-resting body (more servos, unconditionally stable).
+   We build V3 first; the gait keyframes port straight to the Pi.
+4. V3 gait: feet plant slightly BEHIND, small lift (30%), vault overlapped
+   with lowering — a controlled forward topple. step=14deg back=4deg
+   tempo=0.6 lift=0.3 -> 1.8cm/cycle.
+5. Wheel mode physics: a 4-spoke rimless wheel cannot start from rest
+   (45-degree tip-overs) — it must be THROWN in at >=1.2 m/s, then coasts
+   1.4m+. Just like the movie. Powered rolling = v2 research (telescoping
+   spokes or 8+ spokes).

@@ -40,8 +40,10 @@ test the CLI immediately.
 
 - [x] Personality core (humor/honesty settings, Claude-powered chat, CLI)
 - [x] Parametric CAD (`hardware/cad/tars.scad`, OpenSCAD)
-- [x] Physics simulation — **it walks!** 51cm/10s in MuJoCo with an IMU
-      balance loop (`simulation/`, watch with `mjpython gait_sim.py --gui`)
+- [x] Physics simulation — **it walks!** Two proven gaits: IMU-balance
+      (5.1 cm/s) and the build-target V3 lift+swing (2.3 cm/s, zero falls);
+      **wheel mode** cartwheels 1.4m+ from a running start
+      (`simulation/`, try `mjpython roll_sim.py --gui`)
 - [x] Research: proven community design identified (TARS-AI V3, 25.0cm,
       CC-BY-NC) — see `docs/research-notes.md`
 - [ ] Parts ordered (`hardware/BOM.md`; India pricing in progress)

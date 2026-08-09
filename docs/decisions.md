@@ -74,3 +74,20 @@ OpenSCAD + MuJoCo design as the v2 platform (fewer servos, dynamic balance, our
 own look). The electronics BOM is ~identical for both, so nothing ordered is
 wasted either way. Next sim milestone: model the V3 lift+swing morphology in
 MuJoCo and reproduce their keyframe gait before hardware arrives.
+
+## 6. Sim-validated architecture + wheel mode (2026-08-10, late session)
+
+- **V3 morphology simulated and walking**: body-on-ground + lift/swing legs,
+  2.3 cm/s quasi-static, zero falls. Winning gait: plant feet 14deg behind,
+  lift 30% of 35mm travel, vault overlapped with lowering (controlled forward
+  topple). These keyframes ARE the future Pi servo code.
+- **Wheel mode (Miller's planet)**: works as kickstart-and-coast — entered at
+  1.8 m/s the 4-slab pinwheel cartwheels 1.4-1.6m. Cannot start from rest
+  (4 spokes = 45deg tip-overs) and powered pumping destabilizes via hub
+  counter-spin. Sustained powered rolling needs per-slab continuous drive +
+  telescoping spokes (TARS3D, arXiv 2510.05001) -> v2 hardware goal with
+  serial-bus servos.
+- **CAD v0.3 final for v1**: central chassis (twin-slab facade; Pi vertical,
+  display window, speaker grille, servo bays at the axle) + two outer legs
+  (35mm axle slot for lift travel, 608ZZ bearing seat). v0.4 details pending:
+  lift crank linkage, lids, wire channels.

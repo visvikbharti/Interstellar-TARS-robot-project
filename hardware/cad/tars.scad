@@ -1,150 +1,159 @@
 // ============================================================
-// TARS mini — parametric chassis, v0.1
+// TARS mini — parametric chassis, v0.3  (sim-validated architecture)
 // ============================================================
-// Four vertical slabs, movie proportions. The two INNER slabs are
-// the driven "walker" pair (keyed to the axle, swung by a servo in
-// the spine). The two OUTER slabs are the stance pair, riding on
-// 608ZZ bearings so the axle turns freely inside them.
+// Architecture proven in simulation (simulation/v3_sim.py — walks
+// 2.3 cm/s quasi-static, zero falls) and matching the community
+// TARS-AI V3 / Charlie Diaz mechanism:
 //
-// All dimensions in mm. Keep these in sync with simulation/gen_model.py.
+//   BODY  — central chassis styled as the two middle slabs, one print.
+//           Holds Pi 5 (vertical), battery, PCA9685, display, speaker.
+//           Its bottom TOUCHES THE GROUND between steps (4mm longer
+//           than the legs) — the robot never balances.
+//   LEGS  — the two outer slabs. Each leg has TWO degrees of freedom:
+//           lift  (35mm vertical slide: axle rides in a slot)
+//           swing (rotation on the shoulder axle, 608ZZ bearing)
 //
-// v0.2 design notes (from MuJoCo gait simulation, 2026-08-10):
-//  * slab_d 50->55: deeper feet = bigger fore-aft tip margin
-//  * bottom front/back edges get a ~6mm round-over so the robot ROLLS
-//    over the stance foot instead of pivoting on a sharp edge
-//  * one 18650 cell low in EACH OUTER SLAB + Pi on a FRONT chest plate:
-//    drops the COM to ~11cm and centers it (stand + walk verified in sim)
-//  * walking requires the MPU6050 IMU balance loop (see simulation/) —
-//    open-loop gaits fall over; the proven TARS-AI V3 alternative instead
-//    adds torso-lift servos and rests the torso on the ground between steps
+// Keep dimensions in sync with simulation/v3_model.py.
+// v0.4 TODO: lift crank linkage detail (servo horn + link), lids,
+//            wire channels. Wheel mode (4 driven slabs, see
+//            simulation/roll_sim.py) is the v2-hardware variant.
 // ============================================================
 
-/* ---------- master dimensions ---------- */
-slab_h      = 240;   // slab height (robot stands ~240mm + foot clearance)
-slab_w      = 40;    // width of one slab
-slab_d      = 55;    // depth (front-to-back) — v0.2: was 50, deeper = more stable
-slab_gap    = 2;     // air gap between slabs
-chamfer     = 4;     // edge chamfer for the monolith look
-wall        = 2.4;   // shell wall thickness (print in PLA/PETG, 3+ walls)
+/* ---------- master dimensions (= v3_model.py) ---------- */
+slab_w     = 40;    // width of one slab
+slab_d     = 55;    // depth (front-to-back)
+leg_h      = 240;   // leg slab height
+body_extra = 4;     // body is longer -> body carries the robot at rest
+body_h     = leg_h + body_extra;
+gap        = 2;     // visual gap between slabs
+body_w     = 2 * slab_w + gap;   // chassis width (two middle slabs, one print)
 
-inner_extra = 4;     // inner pair is slightly LONGER -> deterministic
-                     // support handoff while rocking (gait trick)
+axle_from_top = 25; // shoulder axle, below the slab tops
+axle_d        = 8;  // 8mm aluminium rod
+lift_travel   = 35; // vertical slide range of each leg
 
-axle_from_top = 25;  // axle centreline, measured down from slab top
-axle_d        = 8;   // 8mm aluminium rod/tube
+foot_r  = 6;        // bottom edge round-over (sim: roll, don't pivot)
+chamfer = 4;        // vertical edge chamfer (monolith look)
+wall    = 2.4;      // shell wall
 
-/* ---------- bearings & servo (check against BOM) ---------- */
-brg_od = 22;  brg_w = 7;          // 608ZZ bearing
-servo_l = 40.7; servo_w = 19.7;   // MG996R body
-servo_h = 42.9; servo_flange = 54.5;
-
-/* ---------- spine (back plate joining the outer slabs, holds Pi/servo/battery) ---------- */
-spine_t = 12;                     // spine plate thickness
-spine_h = 160;                    // spine height — v0.2: extended for wiring + low mounting
-
-/* ---------- face detailing ---------- */
-panel_inset = 1.2;                // shallow pockets for the segmented TARS look
-panel_rows  = 3;
+/* ---------- COTS parts (check hardware/BOM.md) ---------- */
+brg_od = 22; brg_w = 7;             // 608ZZ bearing
+servo_l = 40.7; servo_w = 20.1; servo_h = 42.9;  // MG996R + play
+pi_w = 56; pi_l = 85; pi_t = 21;    // Pi 5 (mounted vertically)
+disp_w = 52; disp_h = 82;           // 2.4" SPI display window w/ margin
 
 /* ---------- derived ---------- */
-pitch   = slab_w + slab_gap;                 // slab-to-slab spacing
-total_w = 4 * slab_w + 3 * slab_gap;         // full robot width (166mm default)
-axle_z  = slab_h - axle_from_top;            // axle height above slab bottom
-slab_y  = [ -1.5*pitch, -0.5*pitch, 0.5*pitch, 1.5*pitch ];  // slab centres
+axle_z  = body_h - axle_from_top - body_extra + body_extra; // = leg pivot height
+leg_y   = body_w / 2 + gap + slab_w / 2;
+total_w = body_w + 2 * (gap + slab_w);
 
-// What to show: "assembly" | "exploded" | "print_outer" | "print_inner" | "print_spine"
+// "assembly" | "exploded" | "print_body" | "print_leg"
 RENDER_MODE = "assembly";
 
 /* ============================================================
    primitives
    ============================================================ */
 
-// box with chamfered vertical edges (the monolith profile)
-module chamfered_box(w, d, h, c) {
+module chamfered_box(w, d, h, c) {   // chamfered VERTICAL edges
     hull()
         for (x = [-1, 1], y = [-1, 1])
-            translate([x*(d/2 - c), y*(w/2 - c), 0])
+            translate([x * (d/2 - c), y * (w/2 - c), 0])
                 cylinder(h = h, r = c, $fn = 32);
 }
 
-// shallow rectangular pockets on both faces — TARS's segmented panels
-module face_panels(w, d, h) {
-    rows = panel_rows;
+// cross-section with ROUNDED BOTTOM edges, square top (x-z plane)
+module foot_profile(d, h, r) {
+    hull() {
+        translate([-(d/2 - r), r]) circle(r, $fn = 48);
+        translate([ (d/2 - r), r]) circle(r, $fn = 48);
+        translate([0, h - 0.5]) square([d, 1], center = true);
+    }
+}
+
+// slab solid: chamfered verticals AND rounded bottom
+module slab_solid(w, d, h) {
+    intersection() {
+        chamfered_box(w, d, h, chamfer);
+        rotate([90, 0, 0])
+            linear_extrude(w + 2, center = true)
+                foot_profile(d, h, foot_r);
+    }
+}
+
+module face_panels(w, d, h, rows = 3) {
     ph = (h - 40) / rows - 6;
     for (side = [-1, 1], i = [0 : rows - 1])
-        translate([side * (d/2 - panel_inset + 0.01), 0, 15 + i * (ph + 6)])
+        translate([side * (d/2 - 1.2 + 0.01), 0, 15 + i * (ph + 6)])
             rotate([0, side * -90, 0])
-                translate([0, 0, -panel_inset])
-                    linear_extrude(panel_inset + 0.02)
+                translate([0, 0, -1.2])
+                    linear_extrude(1.24)
                         offset(r = 3) offset(r = -3)
                             square([w - 12, ph], center = true);
 }
 
 /* ============================================================
-   slabs
+   BODY — central chassis (one print, twin-slab facade)
    ============================================================ */
-
-// common slab body: chamfered block, hollowed, panelled, axle bore
-module slab_body(len, bore_d) {
+module body() {
     difference() {
-        chamfered_box(slab_w, slab_d, len, chamfer);
-        // hollow interior (leave solid 30mm around the axle zone)
+        slab_solid(body_w, slab_d, body_h);
+
+        // interior cavity (leave the axle zone solid-ish)
         translate([0, 0, wall])
-            chamfered_box(slab_w - 2*wall, slab_d - 2*wall,
-                          len - wall - 45, max(chamfer - wall, 1));
-        face_panels(slab_w, slab_d, len);
-        // axle bore, full width
-        translate([0, -slab_w/2 - 1, len - axle_from_top])
-            rotate([-90, 0, 0])
-                cylinder(h = slab_w + 2, d = bore_d, $fn = 48);
-    }
-}
+            chamfered_box(body_w - 2*wall, slab_d - 2*wall,
+                          body_h - wall - 55, 2);
 
-// OUTER slab: rides on a 608ZZ bearing (pocket on the inboard face)
-module outer_slab() {
-    difference() {
-        slab_body(slab_h, axle_d + 1.0);   // loose bore; bearing takes the load
-        // bearing pocket, inboard side
-        translate([0, slab_w/2 - brg_w + 0.01, slab_h - axle_from_top])
-            rotate([-90, 0, 0])
-                cylinder(h = brg_w + 0.5, d = brg_od + 0.3, $fn = 64);
-    }
-}
+        // twin-slab illusion: centre grooves front + back
+        for (side = [-1, 1])
+            translate([side * (slab_d/2 - 0.75), 0, -1])
+                cube([1.6, gap, body_h + 2], center = false);
 
-// INNER slab: keyed to the axle (D-flat bore) so the servo drives it
-module inner_slab() {
-    len = slab_h + inner_extra;
-    difference() {
-        slab_body(len, axle_d + 0.3);      // snug bore
-        // (D-flat: flatten the bore by 1mm — cut a shallow slot keyway instead
-        //  if your rod is round; grub-screw boss is the v0.2 refinement)
+        face_panels(body_w, slab_d, body_h);
+
+        // display window — upper front chest
+        translate([-slab_d/2 - 1, -disp_w/2, body_h - 35 - disp_h])
+            cube([wall + 2, disp_w, disp_h]);
+
+        // speaker grille — lower front
+        for (gy = [-3 : 3], gz = [0 : 2])
+            translate([-slab_d/2 - 1, gy * 6, 45 + gz * 6])
+                rotate([0, 90, 0]) cylinder(h = wall + 2, d = 3, $fn = 16);
+
+        // shoulder axle bore straight through
+        translate([0, -body_w/2 - gap - 1, axle_z])
+            rotate([-90, 0, 0])
+                cylinder(h = body_w + 2*gap + 2, d = axle_d + 0.4, $fn = 48);
+
+        // servo bays flanking the axle (2x MG996R per side, lift + swing)
+        for (s = [-1, 1])
+            translate([-servo_l/2, s * (body_w/2 - servo_w - wall) - (s < 0 ? 0 : 0), axle_z - servo_h + 8])
+                cube([servo_l, servo_w, servo_h]);
     }
-    // grub screw boss under the axle
-    translate([0, 0, len - axle_from_top - 10])
-        difference() {
-            cube([14, slab_w - 2*wall, 8], center = true);
-            rotate([0, 0, 0]) cylinder(h = 10, d = 2.8, center = true, $fn = 24); // M3 tap
-        }
 }
 
 /* ============================================================
-   spine — back plate joining the two outer slabs; mounts the
-   drive servo (nose through the plate onto the axle), Pi + battery
+   LEG — outer slab: axle SLOT (lift travel) + bearing pocket (swing)
    ============================================================ */
-module spine() {
+module leg() {
     difference() {
-        // plate spanning the outer slabs, sitting behind the robot
-        translate([slab_d/2 + spine_t/2, 0, slab_h - spine_h])
-            chamfered_box(total_w, spine_t, spine_h, 3);
-        // servo cutout centred on the axle line
-        translate([slab_d/2 - 1, 0, axle_z])
-            rotate([0, 90, 0])
-                cube([servo_w + 0.6, servo_l + 0.6, spine_t + 14], center = true);
-        // wiring pass-throughs
-        for (y = [-pitch, pitch])
-            translate([slab_d/2 + spine_t/2, y, slab_h - spine_h + 20])
-                rotate([0, 90, 0])
-                    cylinder(h = spine_t + 2, d = 10, center = true, $fn = 32);
+        slab_solid(slab_w, slab_d, leg_h);
+        // hollow lower half (battery bay optional in v2; keeps legs light)
+        translate([0, 0, wall])
+            chamfered_box(slab_w - 2*wall, slab_d - 2*wall, leg_h/2, 2);
+        face_panels(slab_w, slab_d, leg_h);
+
+        // vertical SLOT for the axle: the leg slides 35mm on the shoulder
+        hull()
+            for (dz = [0, lift_travel])
+                translate([0, -slab_w/2 - 1, leg_h - axle_from_top - dz])
+                    rotate([-90, 0, 0])
+                        cylinder(h = slab_w + 2, d = axle_d + 0.6, $fn = 48);
+
+        // bearing pocket at the TOP of the slot (inboard face) — the leg
+        // hangs on the bearing; the lift crank (v0.4) pushes it down
+        translate([0, slab_w/2 - brg_w + 0.01, leg_h - axle_from_top])
+            rotate([-90, 0, 0])
+                cylinder(h = brg_w + 0.5, d = brg_od + 0.3, $fn = 64);
     }
 }
 
@@ -152,17 +161,18 @@ module spine() {
    assembly / print layouts
    ============================================================ */
 module assembly(explode = 0) {
-    color("dimgray")  for (i = [0, 3]) translate([0, slab_y[i], 0]) outer_slab();
-    color("gray")     for (i = [1, 2])
-        translate([0, slab_y[i] * (1 + explode * 0.4), -inner_extra]) inner_slab();
-    color("silver")   // axle
-        translate([0, -total_w/2 - 5 - explode * 30, axle_z])
-            rotate([-90, 0, 0]) cylinder(h = total_w + 10, d = axle_d, $fn = 48);
-    color("darkslategray") translate([explode * 40, 0, 0]) spine();
+    color("gray") translate([0, 0, 0]) body();
+    color("dimgray")
+        for (s = [-1, 1])
+            translate([0, s * (leg_y + explode * 45), body_extra])
+                leg();
+    color("silver")
+        translate([0, -total_w/2 - 5 - explode * 40, axle_z])
+            rotate([-90, 0, 0])
+                cylinder(h = total_w + 10, d = axle_d, $fn = 48);
 }
 
-if (RENDER_MODE == "assembly")     assembly(0);
-if (RENDER_MODE == "exploded")     assembly(1);
-if (RENDER_MODE == "print_outer")  rotate([0, -90, 0]) outer_slab();   // lie flat
-if (RENDER_MODE == "print_inner")  rotate([0, -90, 0]) inner_slab();
-if (RENDER_MODE == "print_spine")  rotate([0, 90, 0])  spine();
+if (RENDER_MODE == "assembly")   assembly(0);
+if (RENDER_MODE == "exploded")   assembly(1);
+if (RENDER_MODE == "print_body") rotate([0, -90, 0]) body();  // lies on its back
+if (RENDER_MODE == "print_leg")  rotate([0, -90, 0]) leg();
