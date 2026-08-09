@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# TARS runtime state
+software/tars_settings.json
+
+# Secrets
+.env
+
+# OS
+.DS_Store
+
+# 3D printing scratch (sliced gcode is machine-specific; keep STLs/STEP in git)
+*.gcode
