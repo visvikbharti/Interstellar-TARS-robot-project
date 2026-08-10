@@ -7,7 +7,9 @@ Based on the proven TARS-AI V3 electronics architecture + our additions.
 **Revised 10 Aug 2026 (late), after a full pre-order audit:** the original
 power chain would not have worked — the LM2596 (3A) servo rail and the
 9–24V-input Pi buck are replaced with page-verified 2S-input UBECs, and the
-missing 2S charger, 20A BMS, speaker and PETG spool are now line items.
+missing 2S charger, 20A BMS and speaker are now line items. Filament spools
+were then removed again: printing is outsourced to a service (see
+`print-plan.md`), which supplies the material.
 
 ## The buy plan (three orders; robu.in carries ~88%)
 
@@ -23,15 +25,19 @@ per-SKU stock data):
 | UBEC-8A 2–8S Lipo | battery → **servo rail** (set **6.0V**) | 1,579 | 8A cont / 15A burst, input 6–36V ([robu](https://robu.in/product/ubec-8a-6-36v-28s-lipo-esc/)). The ONLY in-stock 2S-input unit ≥8A anywhere on 10 Aug. Add 470–1000µF cap across the rail. 6.0V (not 7.4V) keeps stall current down; if you later want sustained-stall margin, add a second and split 3 servos per UBEC |
 | UBEC 5V/5A | battery → **Pi rail** | 392 | Input 5.5–35V, covers 2S sag ([robu SKU 974872](https://robu.in/product/ubec-5v-5a/)). Page says 5.25V±0.5 out — **measure under load before first connecting the Pi**; feed the GPIO 5V pins or a 5A USB-C pigtail; expect the Pi's low-power-supply warning (`usb_max_current_enable=1`). ₹91 MINI560 is an in-stock hedge but has only 0.4V margin at pack floor |
 | 2S charger, 8.4V/2A CC/CV | charges the pack through its BMS | 534 | Pro-Range ETC20, barrel plug ([robu](https://robu.in/product/pro-range-battery-charger-2s-li-ion-8-4v-2a-with-dc-5-5mm-2-5mm-male-plug/)). 5.5×2.5mm MALE plug — solder a female barrel pigtail onto the pack's charge leads |
-| Creality CR-PETG 1kg, black | load-bearing parts (legs, cranks, drivetrain) | 1,079 | Diaz V1 broke PLA drivetrain parts after ~4 steps — PETG, 3+ walls on load parts ([robu](https://robu.in/product/creality-cr-petg-3d-filament-1-75mm-1kg-black/)) |
 | INMP441 I2S MEMS mic | ears | 146 | |
 | DFRobot MAX98357A I2S amp | voice amp | 669 | ₹138 more than Engineer Store, saves a third parcel |
 | 2.4" ST7789V SPI display 240×320 | face/status | 427 | (V3 stock design uses a 5" screen — see below) |
 | 608ZZ bearings ×4 | axle | 62 | |
 | M3 bolt+nut sets | assembly | ~250 | Better: M3 assortment box on Amazon.in (~₹400–600) or Lajpat Rai Market |
-| Sunlu PLA+ 1kg | chassis/cosmetic parts | 939 | ₹939 = bright colours only (gold/beige/pink…); **black is ₹1,398** and no dark colour is in stock at ₹939 (verified). TARS is black/grey — decide at checkout (+₹459) |
 | MPU6050 IMU | balance loop (our addition) | ~150 | |
-| **Subtotal** | | **≈ ₹28,970** | with a ₹939-colour PLA+ spool; +₹459 if black |
+| **Subtotal** | | **≈ ₹26,950** | |
+
+> **No filament in this order.** Printing is outsourced to a 3D-printing
+> service (no home printer) — spec black PLA for cosmetic parts and black
+> PETG for load parts in the print order instead of buying spools. Vendors,
+> settings and the STL source are in `print-plan.md`; budget is a quote at
+> upload time (service minimums + per-gram rates dominate).
 
 **Order 2 — Robocraze** (Bangalore; free delivery >₹999):
 
@@ -59,8 +65,8 @@ Bhagirath Palace (Chandni Chowk), by the foot, cheaper than any online option
 
 | Build | Total |
 |---|---|
-| **Pi 5 8GB path (recommended)** | **≈ ₹33,500–33,800** all-in (₹28,970 robu + ₹3,520 Robocraze + ~₹470 ThinkRobotics + ₹500–800 wire/connectors/switch). +₹459 if the PLA+ spool is black; +₹3,216 if swapping to the 5" DSI panel (see display note) |
-| Pi 5 **4GB** path | ≈ ₹26,200 (−₹7,370) — but the only in-stock 4GB (₹12,631) is at The Engineer Store, the vendor trap #4 says to verify first; and 4GB squeezes the on-device STT/TTS headroom this build depends on |
+| **Pi 5 8GB path (recommended)** | **≈ ₹31,450–31,750** electronics all-in (₹26,950 robu + ₹3,520 Robocraze + ~₹470 ThinkRobotics + ₹500–800 wire/connectors/switch) **+ the 3D-printing service quote** (`print-plan.md`). +₹3,216 if swapping to the 5" DSI panel (see display note) |
+| Pi 5 **4GB** path | ≈ ₹24,100 (−₹7,370) — but the only in-stock 4GB (₹12,631) is at The Engineer Store, the vendor trap #4 says to verify first; and 4GB squeezes the on-device STT/TTS headroom this build depends on |
 | DS3218 20kg servo upgrade ×6 | +₹10,850 (ThinkRobotics ₹2,099 ea — the only in-stock source; robu cheaper but out of stock) |
 
 The Pi is ⅔ of the budget — India's Pi 5 8GB price (~₹20k across vendors) is

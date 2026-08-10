@@ -70,7 +70,7 @@ Assumes a 6-servo walker with MG996R class joints, I2S audio, a 2.4" SPI face pa
 
 Add roughly **₹500–800** for hookup wire, JST/Dupont connectors, a power switch and shipping on the smaller orders → budget **₹30,000–30,500** all-in.
 
-> **Post-audit correction (10 Aug, late):** the Power group above is wrong — the ₹189 buck can't take 2S input and the LM2596 can't feed six servos — and this estimate omits the 2S charger, a big-enough BMS, the speaker, and PETG. The corrected buy plan in `hardware/BOM.md` lands at **≈ ₹33,500–33,800 all-in**.
+> **Post-audit correction (10 Aug, late):** the Power group above is wrong — the ₹189 buck can't take 2S input and the LM2596 can't feed six servos — and this estimate omits the 2S charger, a big-enough BMS, and the speaker. Filament also dropped out: printing is outsourced to a service (`hardware/print-plan.md`). The corrected buy plan in `hardware/BOM.md` lands at **≈ ₹31,450–31,750 electronics all-in, plus the 3D-printing quote**.
 
 Useful swings on that number:
 - **Pi 5 4GB instead of 8GB:** −₹7,370 (→ ~₹22,100). But this build's pipeline *is* on-device speech models (sherpa-onnx STT + Piper TTS), so by that criterion 8GB is the right buy — and the only in-stock 4GB source is The Engineer Store (see the caution at the end).

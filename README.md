@@ -11,7 +11,7 @@ movie's adjustable **humor** and **honesty** settings.
 
 ```
 software/    TARS's brain — personality, chat, (soon) voice + servo control
-hardware/    Bill of materials + parametric CAD (wiring & print docs to come)
+hardware/    Bill of materials, parametric CAD, print plan (wiring doc to come)
 docs/        Design decisions, research notes, India sourcing report
 ```
 
@@ -47,7 +47,7 @@ test the CLI immediately.
 - [x] Research: proven community design identified (TARS-AI V3, 25.0cm,
       CC-BY-NC) — see `docs/research-notes.md`
 - [ ] Parts ordered (`hardware/BOM.md`; prices live-verified 10 Aug 2026 — ready to order)
-- [ ] Chassis printed
+- [ ] Chassis printed (outsourced — `hardware/print-plan.md`)
 - [ ] Voice: wake word → speech-to-text → TARS → text-to-speech
 - [ ] Walking gait on real hardware
 - [ ] Final assembly: it walks, it talks, it judges your plans

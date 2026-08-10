@@ -100,3 +100,15 @@ MuJoCo and reproduce their keyframe gait before hardware arrives.
   display window, speaker grille, servo bays at the axle) + two outer legs
   (35mm axle slot for lift travel, 608ZZ bearing seat). v0.4 details pending:
   lift crank linkage, lids, wire channels.
+
+## 7. Printing: outsourced to a print service (2026-08-10)
+
+No home printer — chassis parts are ordered from an online 3D-printing
+service, the workflow proven the same week on the micro-quad project
+(ZBOTiC order delivered 10 Aug 2026; received part matched CAD, press-fit
+bores true). Consequences:
+- No filament spools in the BOM — material is specified in the print order
+  instead (black PLA cosmetic, black PETG 3+ walls for load parts).
+- No printer/bed-size constraint on our side.
+- Vendors, settings, pinned STL source and on-receipt checks:
+  `hardware/print-plan.md`.
