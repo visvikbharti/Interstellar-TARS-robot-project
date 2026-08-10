@@ -17,28 +17,28 @@
       <body name="slab0" pos="0 -0.0630 0">
         <joint name="slab0_hinge" type="hinge" axis="0 1 0" limited="false"
                damping="0.05" frictionloss="0.15"/>
-        <geom type="box" size="0.0275 0.0200 0.1200" pos="0 0 -0.0950" mass="0.21"/>
+        <geom type="box" size="0.0275 0.0200 0.1195" pos="0 0 -0.0945" mass="0.21"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="-0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
       </body>
       <body name="slab1" pos="0 -0.0210 0">
         <joint name="slab1_hinge" type="hinge" axis="0 1 0" limited="false"
                damping="0.05" frictionloss="0.15"/>
-        <geom type="box" size="0.0275 0.0200 0.1200" pos="0 0 -0.0950" mass="0.21"/>
+        <geom type="box" size="0.0275 0.0200 0.1195" pos="0 0 -0.0945" mass="0.21"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="-0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
       </body>
       <body name="slab2" pos="0 0.0210 0">
         <joint name="slab2_hinge" type="hinge" axis="0 1 0" limited="false"
                damping="0.05" frictionloss="0.15"/>
-        <geom type="box" size="0.0275 0.0200 0.1200" pos="0 0 -0.0950" mass="0.21"/>
+        <geom type="box" size="0.0275 0.0200 0.1195" pos="0 0 -0.0945" mass="0.21"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="-0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
       </body>
       <body name="slab3" pos="0 0.0630 0">
         <joint name="slab3_hinge" type="hinge" axis="0 1 0" limited="false"
                damping="0.05" frictionloss="0.15"/>
-        <geom type="box" size="0.0275 0.0200 0.1200" pos="0 0 -0.0950" mass="0.21"/>
+        <geom type="box" size="0.0275 0.0200 0.1195" pos="0 0 -0.0945" mass="0.21"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="-0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
         <geom type="cylinder" size="0.0060 0.0200" pos="0.0215 0 -0.2090" euler="1.5708 0 0" mass="0.005" friction="1.3 0.02 0.001"/>
       </body>

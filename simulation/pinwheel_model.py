@@ -3,12 +3,12 @@
 The movie robot splays its four slabs into a pinwheel and cartwheels. The
 research-proven mechanism (TARS3D, arXiv 2510.05001) is a **double rimless
 wheel**: each slab is driven independently around the shoulder axle, and the
-two slab pairs run 45 degrees out of phase — the robot rolls in smooth 45
-degree tip-overs, alternating support between the pairs.
+two slab pairs run 90 degrees out of phase — the robot rolls in 90 degree
+tip-overs, alternating support between the pairs.
 
 Hardware note: this needs 4 independently-driven slabs on one axle with
-continuous rotation — serial-bus servos (LX-16A class, in the BOM
-alternatives) mounted in a central hub. That is the **v2 hardware** goal;
+continuous rotation — serial-bus servos (LX-16A class) planned for v2,
+mounted in a central hub. That is the **v2 hardware** goal;
 the v1 build (TARS-AI V3 architecture) cannot do wheel mode.
 
 Run:  python pinwheel_model.py
@@ -33,10 +33,11 @@ SERVO_MAX_W = 7.0           # rad/s no-load-ish
 SLAB_Y = [-1.5, -0.5, 0.5, 1.5]  # x (SLAB_W + GAP)
 
 
-def slab(i, y_pitch):
+def slab(i):
     y = SLAB_Y[i] * (SLAB_W + GAP) * MM
-    hx, hy, hz = SLAB_D / 2 * MM, SLAB_W / 2 * MM, SLAB_H / 2 * MM
-    zc = (AXLE_FROM_TOP - SLAB_H / 2) * MM
+    box_len = SLAB_H - 1
+    hx, hy, hz = SLAB_D / 2 * MM, SLAB_W / 2 * MM, box_len / 2 * MM
+    zc = (AXLE_FROM_TOP - box_len / 2) * MM     # box bottom sits 1mm up
     r = 6 * MM
     x_rail = SLAB_D / 2 * MM - r
     z_b = (AXLE_FROM_TOP - SLAB_H) * MM
@@ -71,7 +72,7 @@ def main():
       <freejoint/>
       <geom type="cylinder" size="{HUB_R:.4f} {total_w / 2:.4f}" euler="1.5708 0 0"
             mass="{M_HUB}" rgba="0.2 0.22 0.25 1"/>
-      {slab(0, 0)}{slab(1, 0)}{slab(2, 0)}{slab(3, 0)}
+      {slab(0)}{slab(1)}{slab(2)}{slab(3)}
     </body>
   </worldbody>
 

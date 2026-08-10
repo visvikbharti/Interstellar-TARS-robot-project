@@ -27,7 +27,7 @@ M_PI = 0.10      # Raspberry Pi + chest plate, FRONT of the slabs
 M_CELL = 0.10    # one 18650 cell + holder, in the BOTTOM of each outer slab
 M_SLAB = 0.15    # one printed slab
 
-MAX_TORQUE = 2.5  # N*m per joint (MG996R-class; see BOM)
+MAX_TORQUE = 1.0  # N*m per joint (MG996R @ 6V rail: ~10-11 kg*cm stall = ~1.0 N*m; DS3218 upgrade ~2.0)
 # hobby servos hold position stiffly: high kp, strong damping, gearbox friction
 SERVO_KP, SERVO_KV, JOINT_FRICTION = 60.0, 2.0, 0.20
 

@@ -9,24 +9,28 @@ The user owns NO Raspberry Pi; buying new in India (New Delhi).
   Piper text-to-speech) runs comfortably in real time on a Pi 5; on a Pi 4 the
   speech-to-text step is noticeably laggy for conversation.
 - 8GB gives headroom to run STT + TTS + servo control + the Claude client
-  simultaneously without swap. The 4GB saves ~₹1.5–2k but is the first thing
-  you'd regret.
+  simultaneously without swap. The 4GB saves ₹7,370 (live-verified 10 Aug 2026
+  — India Pi pricing is steep, so the delta is real money), but on-device
+  STT/TTS is exactly what eats RAM, and the only in-stock 4GB source is the
+  vendor the BOM cautions against for large orders. 8GB stands.
 - The community TARS-AI stack targets Pi 5, so we stay on the well-trodden path.
 - The LLM itself is *not* local — TARS thinks via the Claude API — so we don't
   need anything bigger (no Jetson etc.).
 
 Buy alongside it: official 27W USB-C PSU (bench use), the official Active
-Cooler (the Pi 5 throttles without it), 64GB A2 microSD. On the robot, the Pi
-runs from the battery through a 5V/5A buck converter instead of the PSU.
-Exact INR prices + vendors: see `hardware/BOM.md` (in progress).
+Cooler (the Pi 5 throttles without it), 64GB microSD (no India hobby vendor
+stocks A2 — the BOM's SanDisk Ultra A1 is fine for a robot). On the robot, the
+Pi runs from the battery through a 2S-rated 5V/5A converter instead of the PSU.
+Exact INR prices + vendors: see `hardware/BOM.md` (live-verified 10 Aug 2026).
 
 ## 2. CAD: OpenSCAD  (user-suggested; agreed)
 
 - Fully parametric — every dimension in `hardware/cad/tars.scad` is a variable;
-  change `slab_h` once and the whole robot rescales.
+  change `leg_h` once and the whole robot rescales.
 - Text-based → diffs cleanly in git, and we can co-edit it easily.
 - Exports STL directly for slicing AND meshes/dimensions shared with the
-  simulator (`simulation/gen_urdf.py` mirrors the same numbers).
+  simulator (`simulation/gen_model.py` / `v3_model.py` mirror the same
+  numbers into MuJoCo MJCF).
 - Escape hatch: if we later adopt proven community STLs (Charlie Diaz /
   TARS-AI, license research pending), OpenSCAD still handles our custom parts
   (spine, mounts, brackets).
@@ -59,7 +63,10 @@ Simulation verdict on the v0.1 two-servo rocking gait: **open-loop always falls*
 - Low, centered mass: 18650 cells in outer slab bottoms, Pi on a front chest plate
 - **IMU balance loop** (MPU6050): stance legs correct torso pitch, segway-style
 - "Lean and catch": 0.04 rad forward lean + 25° kick gait at 1.2 Hz
-- Result: **51cm in 10s (5.1 cm/s), upright, drift <1cm**
+- Result: **30cm in 10s (3.0 cm/s), upright, drift <1cm** at true MG996R
+  torque (1.0 N·m; an earlier 5.1 cm/s figure came from an inflated 2.5 N·m
+  servo model — corrected in the 10 Aug audit, all 75 sweep configs still
+  stay upright)
 
 ## 5. Chassis fork: TARS-AI V3 STLs vs our custom SCAD
 
@@ -78,12 +85,14 @@ MuJoCo and reproduce their keyframe gait before hardware arrives.
 ## 6. Sim-validated architecture + wheel mode (2026-08-10, late session)
 
 - **V3 morphology simulated and walking**: body-on-ground + lift/swing legs,
-  2.3 cm/s quasi-static, zero falls. Winning gait: plant feet 14deg behind,
-  lift 30% of 35mm travel, vault overlapped with lowering (controlled forward
-  topple). These keyframes ARE the future Pi servo code.
-- **Wheel mode (Miller's planet)**: works as kickstart-and-coast — entered at
-  1.8 m/s the 4-slab pinwheel cartwheels 1.4-1.6m. Cannot start from rest
-  (4 spokes = 45deg tip-overs) and powered pumping destabilizes via hub
+  2.4 cm/s quasi-static, zero falls (at true 1.0 N·m servo torque). Winning
+  gait: plant feet 14deg AHEAD (step=14, back=4 — the body vaults forward
+  over them), lift 30% of 35mm travel, vault overlapped with lowering
+  (controlled forward topple). These keyframes ARE the future Pi servo code.
+- **Wheel mode (Miller's planet)**: works as kickstart-and-coast — needs a
+  ≥1.6 m/s entry; at 1.8 m/s (the sweet spot — 2.0 falls) the 4-slab
+  pinwheel cartwheels ~1.6m. Cannot start from rest
+  (4 spokes = 90deg tip-overs) and powered pumping destabilizes via hub
   counter-spin. Sustained powered rolling needs per-slab continuous drive +
   telescoping spokes (TARS3D, arXiv 2510.05001) -> v2 hardware goal with
   serial-bus servos.

@@ -2,9 +2,10 @@
 
 The four slabs splay into a pinwheel (spokes every 90 degrees) and the robot
 rolls over the slab tips like a rimless wheel. Sim findings: this works as a
-KICKSTART-AND-COAST maneuver — entered at >=1.2 m/s it rolls 1.4m+ (movie-
-accurate: TARS enters the spin from a run). Sustained powered rolling needs
-telescoping spokes (TARS3D trick) — future v2 hardware research.
+KICKSTART-AND-COAST maneuver — it needs >=1.6 m/s to clear the 90 degree
+tip-overs, and entered at 1.8 m/s it rolls ~1.6m (movie-accurate: TARS
+enters the spin from a run). Sustained powered rolling needs telescoping
+spokes (TARS3D trick) — future v2 hardware research.
 
 Usage:
   python roll_sim.py                # headless: kickstart, measure roll
@@ -110,7 +111,7 @@ def main() -> None:
     ap.add_argument("--gui", action="store_true")
     ap.add_argument("--sweep", action="store_true")
     ap.add_argument("--omega", type=float, default=0.0, help="slab spin rate (0 = rigid coast, the stable mode)")
-    ap.add_argument("--v0", type=float, default=1.8, help="kickstart speed, m/s (needs >=1.2 to clear tip-overs)")
+    ap.add_argument("--v0", type=float, default=1.8, help="kickstart speed, m/s (needs >=1.6 to clear tip-overs)")
     ap.add_argument("--layout", choices=tuple(LAYOUTS), default="interleave")
     ap.add_argument("--seconds", type=float, default=14.0)
     args = ap.parse_args()

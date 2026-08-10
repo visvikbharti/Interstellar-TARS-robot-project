@@ -32,10 +32,10 @@
 | **18650 loose cell** | Murata (Sony) VTC6 3000mAh, 7C | **691** | [robu.in](https://robu.in/product/sony-vtc6-18650-li-ion-3000-mah-battery/) SKU 63449 | **In Stock.** High discharge — good for servo surges. |
 | 18650 loose (alt) | Panasonic NCR18650GA 3300mAh | 635 | [robu.in](https://robu.in/product/panasonic-ncr18650ga-3300mah-3c-li-ion-battery/) SKU 623975 | In Stock. Samsung 30Q (₹578) and LG MJ1 (₹392) both **out of stock**. |
 | **2S cell holder** | 2×18650 | 21 | [Robocraze](https://robocraze.com/products/18650-2-cell-holder) | In stock. Engineer Store ₹20.99–30.43; ThinkRobotics ₹52.99. |
-| **2S BMS** | 2S 10A, 7.4–8.4V | **69** | [robu.in](https://robu.in/product/2s-8a-18650-7-4v-8-4v-lithium-battery-protection-board/) SKU 600732 | In Stock. HX-2S-A2 ₹56 and 2S 5A ₹59 also in stock. |
+| **2S BMS** | 2S **8A cont.** (10A burst), 7.4–8.4V | **69** | [robu.in](https://robu.in/product/2s-8a-18650-7-4v-8-4v-lithium-battery-protection-board/) SKU 600732 | In Stock. Page-verified 8A max — marginal for Pi + servo surges through one BMS; prefer a 15–20A 2S BMS (see BOM). HX-2S-A2 ₹56 and 2S 5A ₹59 also in stock. |
 | TP4056 module | 1S only, USB-C, w/ protection | 15–16 | [KitsGuru](https://kitsguru.com/products/tp4056-1a-li-ion-battery-charging-board-micro-usb-with-current-protection-1) / [Robocraze](https://robocraze.com/products/tp4056-battery-charger-c-type-module-with-protection-1) | In stock. ⚠️ **TP4056 cannot charge a 2S pack** — see gaps. |
-| **LM2596 buck module** | adjustable step-down | **42** | [robu.in](https://robu.in/product/lm2596s-dc-dc-buck-converter-power-supply/) SKU 11548 | In Stock. KitsGuru ₹44, Robocraze ₹48, Engineer Store ₹62–70. |
-| **5V/5A step-down (Pi rail)** | 24/12/9V→5V 5A, 25W | **189** | [robu.in](https://robu.in/product/dc-dc-step-down-buck-converter-power-supply-module-24v-12v-9v-to-5v-5a-25w-replace-lm2596s/) SKU 395957 | **In Stock.** Full 25W — matches the Pi 5's 27W PSU spec. |
+| **LM2596 buck module** | adjustable step-down | **42** | [robu.in](https://robu.in/product/lm2596s-dc-dc-buck-converter-power-supply/) SKU 11548 | In Stock. ⚠️ **3A max — NOT for the servo rail** (six MG996R ≈ 15A stall); the BOM now uses an 8A 2S UBEC (₹1,579) instead. KitsGuru ₹44, Robocraze ₹48, Engineer Store ₹62–70. |
+| **5V/5A step-down (Pi rail)** | 24/12/9V→5V 5A, 25W | **189** | [robu.in](https://robu.in/product/dc-dc-step-down-buck-converter-power-supply-module-24v-12v-9v-to-5v-5a-25w-replace-lm2596s/) SKU 395957 | **In Stock.** ⚠️ Page-verified input **9–24V** — a 2S pack (6.4–8.4V) never reaches its minimum; unusable for this build. Superseded in the BOM by the UBEC 5V/5A (SKU 974872, ₹392, input 5.5–35V). |
 | 5V/5A (compact alt) | MINI560, 5V 5A | 91 | [robu.in](https://robu.in/product/mini560-dc-5v-5a-step-down-stabilized-module/) SKU 1121356 | In Stock. KitsGuru ₹89, Robocraze XY-3606 ₹129. Tiny, but 5A is the *ceiling* — run the Pi only, never servos. |
 | **INMP441 I2S MEMS mic** | omnidirectional, I2S | **136** | [Robocraze](https://robocraze.com/products/inmp441-mems-high-precision-omnidirectional-microphone-module-i2s) | In stock. robu.in ₹146 In Stock (SKU 975775); KitsGuru ₹189; Engineer Store ₹239.56. |
 | **MAX98357A I2S amp** | 3W Class-D, DFRobot | **531.06** | [The Engineer Store](https://www.theengineerstore.in/products/dfrobot-max98357-i2s-amplifier-module) | In stock. robu.in DFRobot ₹669 In Stock; Adafruit version ₹730 (robu) / ₹732.48 (Engineer Store). |
@@ -70,11 +70,13 @@ Assumes a 6-servo walker with MG996R class joints, I2S audio, a 2.4" SPI face pa
 
 Add roughly **₹500–800** for hookup wire, JST/Dupont connectors, a power switch and shipping on the smaller orders → budget **₹30,000–30,500** all-in.
 
+> **Post-audit correction (10 Aug, late):** the Power group above is wrong — the ₹189 buck can't take 2S input and the LM2596 can't feed six servos — and this estimate omits the 2S charger, a big-enough BMS, the speaker, and PETG. The corrected buy plan in `hardware/BOM.md` lands at **≈ ₹33,500–33,800 all-in**.
+
 Useful swings on that number:
-- **Pi 5 4GB instead of 8GB:** −₹7,370 (→ ~₹22,100). 4GB is ample unless you plan on-device speech models.
+- **Pi 5 4GB instead of 8GB:** −₹7,370 (→ ~₹22,100). But this build's pipeline *is* on-device speech models (sherpa-onnx STT + Piper TTS), so by that criterion 8GB is the right buy — and the only in-stock 4GB source is The Engineer Store (see the caution at the end).
 - **DS3218 20kg instead of MG996R** (6×): +₹10,848 (→ ~₹40,300). Only worth it if the legs actually need 20 kg·cm; for a 25–30cm TARS, MG996R is usually sufficient and DS3218 is out of stock at the cheap vendor anyway.
 - **LX-16A serial bus servos** (6×): +₹10,848, and you'd drop the PCA9685 (−₹232). Big win in wiring simplicity and position feedback, big hit to budget.
-- **Skip the SPI screen, use USB mic instead of I2S:** −₹800 or so.
+- **Skip the SPI screen, use USB mic instead of I2S:** −₹371 (screen −427, INMP441 −146, USB mic +202).
 
 ## (b) Hard to get in India — and what to use instead
 
@@ -89,7 +91,7 @@ Useful swings on that number:
 **Two design gotchas worth flagging before you order:**
 
 - **TP4056 cannot charge your 2S pack.** It is a 1S (4.2V) charger. For a 7.4V pack you need an **8.4V CC/CV adapter feeding the 2S BMS**, or a dedicated 2S charger. Buying a TP4056 for this build is a dead end.
-- **Don't run servos off the 5V/5A buck.** Six MG996Rs can stall at ~2.5A each. The 5A module is sized for the Pi alone. Give the servos their **own** high-current rail (the ₹189 25W module for the Pi, plus a separate buck or a 6V BEC for the servo bus), with a fat electrolytic across the servo rail.
+- **Don't run servos off the 5V/5A buck.** Six MG996Rs can stall at ~2.5A each. A 5A module is sized for the Pi alone. Give the servos their **own** high-current rail — a 6V UBEC of 8A+ — with a fat electrolytic across the servo rail. (Post-audit correction: the ₹189 module first suggested for the Pi rail turned out to be 9–24V-input and can't run from 2S at all; the corrected two-UBEC chain is in `hardware/BOM.md`.)
 
 ## (c) Vendor consolidation for a Delhi buyer
 

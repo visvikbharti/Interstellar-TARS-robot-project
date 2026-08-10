@@ -51,11 +51,15 @@ a first-class **Pi 4 profile** (local STT/TTS/wake word all allowed; loses
 camera vision, face/emotion, half the STT threads, 8k vs 16k context). Pi 3 /
 Zero 2 = cloud-only mode. → For a new purchase, Pi 5 8GB is the clear choice.
 
-## Audio amp question (resolved)
+## Audio amp question (resolved for stock V3 — our BOM deviates)
 
-The BOM's Waveshare USB audio dongle has an **onboard 2.6W amplifier** driving
-the speaker directly — no MAX98357A needed. If quiet: internal trim screw +
-alsamixer.
+The **TARS-AI V3 stock BOM's** Waveshare USB audio dongle has an **onboard
+2.6W amplifier** driving the speaker directly — if you build stock V3 audio,
+no MAX98357A is needed (if quiet: internal trim screw + alsamixer). **Our**
+`hardware/BOM.md` instead buys the I2S pair (INMP441 mic + MAX98357A amp):
+better audio quality and no USB dongle, but it deviates from the stock V3
+software path and needs I2S dtoverlay config on the Pi. Both paths work —
+just know which one you're wiring.
 
 ## Key pitfalls from the Diaz lineage
 

@@ -38,12 +38,15 @@ class TarsBrain:
         self.history.append({"role": "user", "content": user_text})
         if len(self.history) > MAX_HISTORY_TURNS:
             self.history = self.history[-MAX_HISTORY_TURNS:]
+            # the slice can strand an assistant turn first; the API requires user-first
+            while self.history and self.history[0]["role"] != "user":
+                self.history.pop(0)
 
         chunks: list[str] = []
         try:
             with self.client.messages.stream(
                 model=DEFAULT_MODEL,
-                max_tokens=1024,
+                max_tokens=4000,
                 output_config={"effort": EFFORT},
                 system=[
                     {

@@ -34,7 +34,7 @@ FOOT_R = 6               # rounded bottom edge rails (see gait findings)
 M_BODY = 0.95            # chassis + Pi + battery + 4 servos (all central & low)
 M_LEG = 0.16             # one printed slab + bearing
 
-HINGE_TORQUE = 2.5       # N*m  (MG996R-class)
+HINGE_TORQUE = 1.0       # N*m  (MG996R @ 6V rail: ~10-11 kg*cm stall = ~1.0 N*m; DS3218 upgrade ~2.0)
 LIFT_FORCE = 55.0        # N    (MG996R 9.4kg*cm through a ~15mm crank arm)
 
 AXLE_Z = (LEG_H - AXLE_FROM_TOP + BODY_EXTRA) * MM   # axle height above body bottom
@@ -69,7 +69,6 @@ def leg(name, y_sign):
 def main():
     bhx, bhy = SLAB_D / 2 * MM, BODY_W / 2 * MM
     bhz = (BODY_H - 1) / 2 * MM
-    b_zc = -AXLE_Z + 1 * MM + bhz              # body box centre (z rel. axle-origin... )
     # body frame origin = axle height; body spans from -AXLE_Z (bottom) upward
     z_bot = -AXLE_Z
     bz_c = z_bot + 1 * MM + bhz

@@ -44,8 +44,8 @@ def keyframes(step_deg: float, back_deg: float, tempo: float, lift: float = 0.5)
     """(lift 0..1, swing rad, duration s) — applied to both legs together.
     Small movements + overlapping vault/lower = the body lands mid-swing,
     so the inverted-pendulum fall is only a few millimetres."""
-    s, b = -math.radians(step_deg), math.radians(back_deg)  # feet plant slightly BEHIND;
-    # the vault is a gentle controlled forward topple caught by the ground
+    s, b = -math.radians(step_deg), math.radians(back_deg)  # feet plant slightly AHEAD;
+    # the body vaults forward over them — a gentle controlled topple caught by the ground
     return [
         (0.0, s, 0.35 * tempo),    # 1 swing unloaded legs forward
         (lift, s, 0.30 * tempo),   # 2 press down -> body rises, pendulum starts

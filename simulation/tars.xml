@@ -43,8 +43,8 @@
 
   <actuator>
     <position name="outer_servo" joint="outer_pair_joint" kp="60.0" kv="2.0"
-              ctrlrange="-2.0 2.0" forcerange="-2.5 2.5"/>
+              ctrlrange="-2.0 2.0" forcerange="-1.0 1.0"/>
     <position name="inner_servo" joint="inner_pair_joint" kp="60.0" kv="2.0"
-              ctrlrange="-2.0 2.0" forcerange="-2.5 2.5"/>
+              ctrlrange="-2.0 2.0" forcerange="-1.0 1.0"/>
   </actuator>
 </mujoco>

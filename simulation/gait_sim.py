@@ -3,7 +3,7 @@
 Walking = "lean and catch": an IMU balance loop (MPU6050 on the real robot)
 keeps the torso upright via the stance legs, a small forward lean makes the
 robot perpetually fall forward, and the inner pair's kick gait keeps catching
-it. Best found gait: ~51cm in 10s (amp=25 freq=1.2 kp=2.0 kd=0.3 lean=0.04).
+it. Best found gait: ~30cm in 10s (amp=25 freq=1.2 kp=2.0 kd=0.3 lean=0.04).
 
 Usage:
   python gait_sim.py                    # headless, prints distance walked

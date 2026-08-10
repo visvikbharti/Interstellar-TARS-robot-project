@@ -45,8 +45,8 @@
     <position name="right_lift"  joint="right_leg_lift"  kp="3000" kv="80"
               ctrlrange="-0.035 0" forcerange="-55.0 55.0"/>
     <position name="left_swing"  joint="left_leg_swing"  kp="60" kv="2"
-              ctrlrange="-1.75 1.75" forcerange="-2.5 2.5"/>
+              ctrlrange="-1.75 1.75" forcerange="-1.0 1.0"/>
     <position name="right_swing" joint="right_leg_swing" kp="60" kv="2"
-              ctrlrange="-1.75 1.75" forcerange="-2.5 2.5"/>
+              ctrlrange="-1.75 1.75" forcerange="-1.0 1.0"/>
   </actuator>
 </mujoco>
