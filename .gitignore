@@ -16,3 +16,4 @@ software/tars_settings.json
 
 # 3D printing scratch (sliced gcode is machine-specific; keep STLs/STEP in git)
 *.gcode
+hardware/stl-v3-order/
