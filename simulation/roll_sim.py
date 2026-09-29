@@ -1,11 +1,16 @@
-"""WHEEL MODE — TARS cartwheels like on Miller's planet.
+"""WHEEL MODE — TARS cartwheels like on Miller's planet (NOT working yet).
 
 The four slabs splay into a pinwheel (spokes every 90 degrees) and the robot
-rolls over the slab tips like a rimless wheel. Sim findings: this works as a
-KICKSTART-AND-COAST maneuver — it needs >=1.6 m/s to clear the 90 degree
-tip-overs, and entered at 1.8 m/s it rolls ~1.6m (movie-accurate: TARS
-enters the spin from a run). Sustained powered rolling needs telescoping
-spokes (TARS3D trick) — future v2 hardware research.
+should roll over the slab tips like a rimless wheel.
+
+Audit (2026-09-29): it does not roll. Thrown in at 1.8 m/s the pinwheel
+tumbles ~0.4 m in half a second, then the spokes fold (up to ~60 deg) and it
+lies flat on the floor (hub 28 mm up) and creeps, undriven, for the rest of
+the run: a simulation artifact, which is where the old "~1.6m" came from. The
+old fall test only checked the hub axis for a sideways roll, so it missed the
+collapse. At 1.2 and 2.4 m/s it falls sideways, and holding the spokes
+stiffer (5 or 20 N m) makes it fall sideways sooner. Rolling needs a different
+mechanism (telescoping spokes, as in TARS3D, arXiv 2510.05001): v2 research.
 
 Usage:
   python roll_sim.py                # headless: kickstart, measure roll
@@ -77,8 +82,8 @@ def run(model, layout: str, omega: float, seconds: float = 14.0, v0: float = 1.2
         t = data.time
         data.ctrl[:] = omega
         mujoco.mj_step(model, data)
-        if abs(roll_angle_deg(data.qpos)) > 45:
-            fell = True
+        if abs(roll_angle_deg(data.qpos)) > 45 or data.qpos[2] < 0.10:
+            fell = True   # fell sideways, or folded flat with the hub on the floor
             break
         if x_mark is None and t >= seconds - 5.0:
             x_mark = data.qpos[0]

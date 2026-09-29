@@ -1,9 +1,17 @@
-"""MuJoCo gait simulation for the TARS mini.
+"""MuJoCo gait simulation for the TARS mini (v1 custom idea: 2 servo pairs + IMU).
 
 Walking = "lean and catch": an IMU balance loop (MPU6050 on the real robot)
-keeps the torso upright via the stance legs, a small forward lean makes the
-robot perpetually fall forward, and the inner pair's kick gait keeps catching
-it. Best found gait: ~30cm in 10s (amp=25 freq=1.2 kp=2.0 kd=0.3 lean=0.04).
+is meant to keep the torso upright via the stance legs, a small forward lean
+makes the robot perpetually fall forward, and the inner pair's kick gait keeps
+catching it.
+
+Audit (2026-09-29): this gait does NOT walk upright. Within 0.5 s the robot
+slumps into a tilted A-frame (slabs ~60 deg from vertical, axle at 140 mm
+instead of 219 mm) and drags itself along. The old fall test only looked at
+the torso (z > 0.10 m, tilt < 70 deg), so it reported "stayed upright" and
+~30cm in 10s. The fall test now checks the torso AND both slab pairs (within
+45 deg of vertical) and the axle height (above 150 mm), and reports the fall.
+The build uses the V3 lift-and-swing gait instead (v3_sim.py).
 
 Usage:
   python gait_sim.py                    # headless, prints distance walked
@@ -82,8 +90,21 @@ class GaitController:
         return gait_o + corr, gait_i + corr
 
 
-def fallen(data) -> bool:
-    return data.qpos[2] < 0.10 or tilt_deg(data.qpos) > 70
+MAX_TILT_DEG = 45.0   # torso and both slab pairs
+MIN_AXLE_Z = 0.150    # m; the axle stands at 0.219 m
+
+
+def quat_tilt_deg(q) -> float:
+    w, x, y, z = q
+    return math.degrees(math.acos(max(-1.0, min(1.0, 1 - 2 * (x * x + y * y)))))
+
+
+def fallen(model, data) -> bool:
+    """Down if the axle sags below 150 mm or the torso or either slab pair
+    tilts more than 45 deg (the torso alone can stay level while the slabs slump)."""
+    worst = max(quat_tilt_deg(data.xquat[model.body(n).id])
+                for n in ("torso", "outer_pair", "inner_pair"))
+    return data.qpos[2] < MIN_AXLE_Z or worst > MAX_TILT_DEG
 
 
 def run(model, seconds: float, ctl: GaitController, push: float = 0.0) -> dict:
@@ -106,7 +127,7 @@ def run(model, seconds: float, ctl: GaitController, push: float = 0.0) -> dict:
             body = model.body("torso").id
             data.xfrc_applied[body][0] = push if 2.0 < t < 2.1 else 0.0
         mujoco.mj_step(model, data)
-        if fallen(data):
+        if fallen(model, data):
             fell = True
             break
 
@@ -144,7 +165,7 @@ def gui_run(model, ctl: GaitController) -> None:
                     t = data.time - walk_t0
                     data.ctrl[outer], data.ctrl[inner] = ctl.targets(t, data.qpos, data.qvel)
                 mujoco.mj_step(model, data)
-                if fallen(data):
+                if fallen(model, data):
                     falls += 1
                     print(f"fell at x={data.qpos[0]*100:+.1f}cm — resetting (fall #{falls})")
                     mujoco.mj_resetData(model, data)
