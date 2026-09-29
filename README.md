@@ -11,7 +11,7 @@ movie's adjustable **humor** and **honesty** settings.
 
 ```
 software/    TARS's brain — personality, chat, (soon) voice + servo control
-hardware/    Bill of materials, parametric CAD, print plan (wiring doc to come)
+hardware/    Bill of materials, parametric CAD and its drawing, print plan (wiring doc to come)
 docs/        Design decisions, research notes, India sourcing report
 ```
 
@@ -39,7 +39,8 @@ test the CLI immediately.
 ## Build status
 
 - [x] Personality core (humor/honesty settings, Claude-powered chat, CLI)
-- [x] Parametric CAD (`hardware/cad/tars.scad`, OpenSCAD)
+- [x] Parametric CAD (`hardware/cad/tars.scad`, OpenSCAD, v0.3.1) and a dimensioned
+      drawing read from it (`python hardware/drawing.py` -> `hardware/tars_drawing.png`)
 - [x] Physics simulation — **it walks, robustly.** The build-target V3
       lift-and-swing gait, reworked into a crutch vault on 29 Sep 2026,
       walks 36 cm in 15 s (2.4 cm/s) at true MG996R torque and stays upright
