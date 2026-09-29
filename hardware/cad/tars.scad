@@ -1,8 +1,9 @@
 // ============================================================
 // TARS mini — parametric chassis, v0.3  (sim-validated architecture)
 // ============================================================
-// Architecture proven in simulation (simulation/v3_sim.py — walks
-// 2.3 cm/s quasi-static, zero falls) and matching the community
+// Architecture validated in simulation (simulation/v3_sim.py — the
+// crutch-vault gait walks 2.4 cm/s and stays upright at every solver
+// setting in --robust; audit 2026-09-29) and matching the community
 // TARS-AI V3 / Charlie Diaz mechanism:
 //
 //   BODY  — central chassis styled as the two middle slabs, one print.

@@ -57,6 +57,9 @@ directly to the real servo code on the Pi.
 
 ## 4. Gait mechanism — VALIDATED IN SIM (2026-08-10)
 
+> **Superseded by §8 (audit, 2026-09-29):** the IMU-balance result below did
+> not hold up; the walker slumps into a tilted A-frame. Kept for the record.
+
 Simulation verdict on the v0.1 two-servo rocking gait: **open-loop always falls**
 (300+ configs swept). What made it walk:
 - Deeper slabs (55mm), rounded bottom edges (roll-over, not edge-pivot)
@@ -83,6 +86,9 @@ wasted either way. Next sim milestone: model the V3 lift+swing morphology in
 MuJoCo and reproduce their keyframe gait before hardware arrives.
 
 ## 6. Sim-validated architecture + wheel mode (2026-08-10, late session)
+
+> **Superseded by §8 (audit, 2026-09-29):** the V3 gait below only walked at
+> the default 2 ms time step, and wheel mode did not roll. Kept for the record.
 
 - **V3 morphology simulated and walking**: body-on-ground + lift/swing legs,
   2.4 cm/s quasi-static, zero falls (at true 1.0 N·m servo torque). Winning
@@ -112,3 +118,29 @@ bores true). Consequences:
 - No printer/bed-size constraint on our side.
 - Vendors, settings, pinned STL source and on-receipt checks:
   `hardware/print-plan.md`.
+
+## 8. Simulation audit + crutch-vault gait (2026-09-29)
+
+Re-ran every simulation with finer solver settings (0.5 and 0.25 ms time
+steps, the implicit and RK4 integrators, elliptic friction cones) and with a
+strict fall test (body AND every slab within 45 deg of vertical, axle above
+150 mm). Findings:
+
+- **Old V3 gait** (feet planted 14 deg ahead, vault overlapped with lowering):
+  walked only at the default 2 ms step; tipped over within 3-9 s at 0.5 ms,
+  with implicitfast, or with elliptic cones. The body landed before it could
+  vault; the progress came from rocking on the rails.
+- **IMU-balance walker:** slumps into a tilted A-frame within 0.5 s (slabs
+  ~60 deg, axle 140 mm). The old test only checked the torso.
+- **Wheel mode:** tumbles ~0.4 m, then folds flat or falls sideways. Stiffer
+  spokes (5-20 N m) fall sideways sooner. Needs a different mechanism (v2).
+
+**Decision:** the build gait is now a **crutch vault**: press down on
+vertical legs (weight over the feet), rotate the hinges back 12 deg with the
+body fully off the ground, set down, swing the unloaded legs forward.
+`vault=12 lift=0.7 tempo=1.0`: 35.9 cm in 15 s, worst tilt 11.5 deg, and the
+same result at all 15 settings in `python v3_sim.py --robust` (incl. floor
+friction 0.5-1.3, 20% weaker servos, body mass -10%/+20%). Peak loads: swing
+0.30 N m (MG996R ~1.0), lift ~11 N (of 55). These keyframes are the future
+Pi servo code. The CAD needs no change (the gait uses 24.5 of the 35 mm lift
+travel).

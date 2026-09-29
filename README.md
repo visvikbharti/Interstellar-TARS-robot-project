@@ -40,10 +40,13 @@ test the CLI immediately.
 
 - [x] Personality core (humor/honesty settings, Claude-powered chat, CLI)
 - [x] Parametric CAD (`hardware/cad/tars.scad`, OpenSCAD)
-- [x] Physics simulation — **it walks!** Two proven gaits at true MG996R
-      torque: IMU-balance (3.0 cm/s) and the build-target V3 lift+swing
-      (2.4 cm/s, zero falls); **wheel mode** cartwheels ~1.6m from a
-      ≥1.6 m/s kickstart (`simulation/`, try `mjpython roll_sim.py --gui`)
+- [x] Physics simulation — **it walks, robustly.** The build-target V3
+      lift-and-swing gait, reworked into a crutch vault on 29 Sep 2026,
+      walks 36 cm in 15 s (2.4 cm/s) at true MG996R torque and stays upright
+      at every solver setting tested (`python v3_sim.py --robust`: time steps
+      2 to 0.25 ms, three integrators, both friction cones, floor friction
+      0.5-1.3, 20% weaker servos, body mass -10%/+20%). The IMU-balance walker
+      and wheel mode do not work yet (`simulation/README.md`)
 - [x] Research: proven community design identified (TARS-AI V3, 25.0cm,
       CC-BY-NC) — see `docs/research-notes.md`
 - [ ] Parts ordered (`hardware/BOM.md`; prices live-verified 10 Aug 2026 — ready to order)
