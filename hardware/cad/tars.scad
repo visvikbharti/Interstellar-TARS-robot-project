@@ -1,5 +1,5 @@
 // ============================================================
-// TARS mini — parametric chassis, v0.3  (sim-validated architecture)
+// TARS mini — parametric chassis, v0.3.1  (sim-validated architecture)
 // ============================================================
 // Architecture validated in simulation (simulation/v3_sim.py — the
 // crutch-vault gait walks 2.4 cm/s and stays upright at every solver
@@ -10,11 +10,21 @@
 //           Holds Pi 5 (vertical), battery, PCA9685, display, speaker.
 //           Its bottom TOUCHES THE GROUND between steps (4mm longer
 //           than the legs) — the robot never balances.
-//   LEGS  — the two outer slabs. Each leg has TWO degrees of freedom:
-//           lift  (35mm vertical slide: axle rides in a slot)
-//           swing (rotation on the shoulder axle, 608ZZ bearing)
+//           lift: the axle rides a 35mm vertical slot in the body, so
+//           pressing the legs down raises the body by up to 35mm
+//   LEGS  — the two outer slabs, each turning on a 608ZZ bearing on the
+//           shoulder axle (swing). With the body's slot, each leg has the
+//           two degrees of freedom of v3_model.py: lift + swing.
 //
 // Keep dimensions in sync with simulation/v3_model.py.
+// Drawing: hardware/drawing.py -> hardware/tars_drawing.png (same numbers).
+// v0.3.1 (2026-09-29): the 35 mm lift slot moved from the legs to the body
+//   (in the legs the axle sat at the top of the slot, so a leg could only
+//   rise, never press down); legs keep a round axle bore and 608ZZ seat;
+//   right leg mirrored, so both bearing seats face the body; servo bays
+//   symmetric (the left bay sat in the middle of the body); face panels
+//   are 3 rows of (h-40)/3-6 by w-12 as the formula intends (they were
+//   turned 90 deg and half a panel low).
 // v0.4 TODO: lift crank linkage detail (servo horn + link), lids,
 //            wire channels. Wheel mode (4 driven slabs, see
 //            simulation/roll_sim.py) is the v2-hardware variant.
@@ -48,7 +58,7 @@ axle_z  = body_h - axle_from_top - body_extra + body_extra; // = leg pivot heigh
 leg_y   = body_w / 2 + gap + slab_w / 2;
 total_w = body_w + 2 * (gap + slab_w);
 
-// "assembly" | "exploded" | "print_body" | "print_leg"
+// "assembly" | "exploded" | "print_body" | "print_leg" | "print_leg_right"
 RENDER_MODE = "assembly";
 
 /* ============================================================
@@ -84,12 +94,12 @@ module slab_solid(w, d, h) {
 module face_panels(w, d, h, rows = 3) {
     ph = (h - 40) / rows - 6;
     for (side = [-1, 1], i = [0 : rows - 1])
-        translate([side * (d/2 - 1.2 + 0.01), 0, 15 + i * (ph + 6)])
+        translate([side * (d/2 - 1.2 + 0.01), 0, 15 + ph/2 + i * (ph + 6)])
             rotate([0, side * -90, 0])
                 translate([0, 0, -1.2])
                     linear_extrude(1.24)
                         offset(r = 3) offset(r = -3)
-                            square([w - 12, ph], center = true);
+                            square([ph, w - 12], center = true);   // x becomes height after the turn
 }
 
 /* ============================================================
@@ -120,20 +130,25 @@ module body() {
             translate([-slab_d/2 - 1, gy * 6, 45 + gz * 6])
                 rotate([0, 90, 0]) cylinder(h = wall + 2, d = 3, $fn = 16);
 
-        // shoulder axle bore straight through
-        translate([0, -body_w/2 - gap - 1, axle_z])
-            rotate([-90, 0, 0])
-                cylinder(h = body_w + 2*gap + 2, d = axle_d + 0.4, $fn = 48);
+        // the LIFT: the axle rides a 35mm vertical slot straight through the
+        // body. At rest the body sits on the ground with the axle at the top
+        // of the slot; pressing the legs down raises the body up to 35mm
+        hull()
+            for (dz = [0, lift_travel])
+                translate([0, -body_w/2 - gap - 1, axle_z - dz])
+                    rotate([-90, 0, 0])
+                        cylinder(h = body_w + 2*gap + 2, d = axle_d + 0.6, $fn = 48);
 
-        // servo bays flanking the axle (2x MG996R per side, lift + swing)
+        // servo bays flanking the axle (2x MG996R per side, lift + swing),
+        // one against each inner wall
         for (s = [-1, 1])
-            translate([-servo_l/2, s * (body_w/2 - servo_w - wall) - (s < 0 ? 0 : 0), axle_z - servo_h + 8])
+            translate([-servo_l/2, s > 0 ? body_w/2 - wall - servo_w : -(body_w/2 - wall), axle_z - servo_h + 8])
                 cube([servo_l, servo_w, servo_h]);
     }
 }
 
 /* ============================================================
-   LEG — outer slab: axle SLOT (lift travel) + bearing pocket (swing)
+   LEG — outer slab: axle bore + 608ZZ seat (swing); the lift slot is in the body
    ============================================================ */
 module leg() {
     difference() {
@@ -143,15 +158,12 @@ module leg() {
             chamfered_box(slab_w - 2*wall, slab_d - 2*wall, leg_h/2, 2);
         face_panels(slab_w, slab_d, leg_h);
 
-        // vertical SLOT for the axle: the leg slides 35mm on the shoulder
-        hull()
-            for (dz = [0, lift_travel])
-                translate([0, -slab_w/2 - 1, leg_h - axle_from_top - dz])
-                    rotate([-90, 0, 0])
-                        cylinder(h = slab_w + 2, d = axle_d + 0.6, $fn = 48);
+        // shoulder bore: the leg turns on the axle (the swing)
+        translate([0, -slab_w/2 - 1, leg_h - axle_from_top])
+            rotate([-90, 0, 0])
+                cylinder(h = slab_w + 2, d = axle_d + 0.4, $fn = 48);
 
-        // bearing pocket at the TOP of the slot (inboard face) — the leg
-        // hangs on the bearing; the lift crank (v0.4) pushes it down
+        // 608ZZ bearing seat on the inboard face (+y; the right leg is mirrored)
         translate([0, slab_w/2 - brg_w + 0.01, leg_h - axle_from_top])
             rotate([-90, 0, 0])
                 cylinder(h = brg_w + 0.5, d = brg_od + 0.3, $fn = 64);
@@ -166,7 +178,7 @@ module assembly(explode = 0) {
     color("dimgray")
         for (s = [-1, 1])
             translate([0, s * (leg_y + explode * 45), body_extra])
-                leg();
+                mirror([0, s > 0 ? 1 : 0, 0]) leg();   // bearing seat faces the body
     color("silver")
         translate([0, -total_w/2 - 5 - explode * 40, axle_z])
             rotate([-90, 0, 0])
@@ -176,4 +188,5 @@ module assembly(explode = 0) {
 if (RENDER_MODE == "assembly")   assembly(0);
 if (RENDER_MODE == "exploded")   assembly(1);
 if (RENDER_MODE == "print_body") rotate([0, -90, 0]) body();  // lies on its back
-if (RENDER_MODE == "print_leg")  rotate([0, -90, 0]) leg();
+if (RENDER_MODE == "print_leg")  rotate([0, -90, 0]) leg();                       // left
+if (RENDER_MODE == "print_leg_right") rotate([0, -90, 0]) mirror([0, 1, 0]) leg();  // right

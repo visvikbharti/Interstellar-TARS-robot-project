@@ -144,3 +144,26 @@ friction 0.5-1.3, 20% weaker servos, body mass -10%/+20%). Peak loads: swing
 0.30 N m (MG996R ~1.0), lift ~11 N (of 55). These keyframes are the future
 Pi servo code. The CAD needs no change (the gait uses 24.5 of the 35 mm lift
 travel).
+
+## 9. CAD v0.3.1: the lift slot moves to the body (2026-09-29)
+
+Drawing the chassis up (`hardware/drawing.py`) and cutting sections through
+`tars.scad` turned up four problems in v0.3, all fixed in v0.3.1:
+
+- **The lift could not work.** The 35 mm slot was in the legs with the axle at
+  its top at rest, so a leg could only rise relative to the axle, never press
+  down (the gait needs the legs to push the body up). The slot is now in the
+  body: at rest the body sits on the ground with the axle at the top of the
+  slot, and pressing the legs down raises the body up to 35 mm. This is the
+  relative motion `v3_model.py` already simulates, so the gait results stand.
+  Legs keep a round axle bore and a round 608ZZ seat (the swing).
+- **The right leg was not mirrored**, so its bearing seat faced outwards. Both
+  seats now face the body (`print_leg_right` prints the mirrored leg).
+- **The left servo bay sat in the middle of the body** (its offset ignored the
+  side). The bays are now mirror images, one against each inner wall.
+- **The face panels were turned 90 deg and half a panel low**, so they
+  overlapped and ran off the legs. They are now the 3 rows of
+  (h - 40)/3 - 6 by w - 12 the formula describes.
+
+The drawing reads every dimension from `tars.scad`, so it cannot drift from
+the model.
